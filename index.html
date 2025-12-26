@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AmplLab - Audio Data Research</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <style>
+        /* Base Styling */
+        body {
+            -webkit-font-smoothing: antialiased;
+            background-color: #f8f9fa;
+            color: #1a1a1a;
+            margin: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Nav Transition Logic */
+        .navbar_wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            height: 80px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .navbar_wrapper.is-scrolled {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            height: 70px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .nav_container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 100%;
+        }
+
+        /* Hero */
+        .section_hero {
+            padding-top: 100px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .heading-style-h1 {
+            font-size: clamp(3.5rem, 9vw, 6rem);
+            line-height: 0.95;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+        }
+
+        .heading-style-h1 em {
+            font-style: italic;
+            color: #4d65ff;
+            font-family: serif;
+        }
+
+        /* Horizontal Scroll Section */
+        .horizontal-scroll_wrapper {
+            position: relative;
+            height: 500vh; /* Scaled for 4 cards */
+        }
+
+        .horizontal-scroll_sticky {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .dataset_header_wrap {
+            padding: 0 10vw;
+            margin-bottom: 4rem;
+            z-index: 20;
+            position: relative;
+        }
+
+        .horizontal-scroll_list {
+            display: flex;
+            gap: 4rem;
+            padding: 0 10vw;
+            will-change: transform;
+            align-items: flex-start;
+        }
+
+        .dataset_card {
+            flex: 0 0 clamp(350px, 35vw, 480px);
+            background: #fff;
+            border-radius: 2rem;
+            padding: clamp(2rem, 4vw, 3.5rem);
+            border: 1px solid #e5e7eb;
+            min-height: 520px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+        }
+
+        .dataset_card:hover {
+            border-color: #4d65ff;
+            transform: translateY(-10px);
+        }
+
+        /* Buttons */
+        .button {
+            background: #1a1a1a;
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 99px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            cursor: pointer;
+            border: none;
+        }
+
+        .button:hover {
+            background: #4d65ff;
+            transform: scale(1.05);
+        }
+
+        /* Lead Gen Form */
+        .contact_input {
+            width: 100%;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            padding: 1.25rem 1.5rem;
+            border-radius: 1rem;
+            transition: border-color 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .contact_input:focus {
+            outline: none;
+            border-color: #4d65ff;
+        }
+
+        /* News Section */
+        .is-dark {
+            background-color: #0e0e0e;
+            color: #fff;
+        }
+
+        .news_row {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 2.5rem 0;
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .news_row:hover {
+            padding-left: 2rem;
+            background: rgba(255,255,255,0.03);
+        }
+
+        @media (max-width: 768px) {
+            .dataset_card {
+                flex: 0 0 85vw;
+                min-height: 480px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <!-- Navigation -->
+        <nav class="navbar_wrapper" id="nav">
+            <div class="nav_container">
+                <a href="#top" class="nav_logo_text text-xl font-bold tracking-tighter">AmplLab</a>
+                <div class="hidden md:flex gap-8 text-sm font-semibold opacity-70">
+                    <a href="#mission" class="hover:text-[#4d65ff] transition-colors">Mission</a>
+                    <a href="#datasets" class="hover:text-[#4d65ff] transition-colors">Datasets</a>
+                    <a href="#news" class="hover:text-[#4d65ff] transition-colors">News</a>
+                </div>
+                <a href="#contact" class="button py-2 px-6 text-sm">Join us</a>
+            </div>
+        </nav>
+
+        <main>
+            <!-- Hero -->
+            <section id="top" class="section_hero">
+                <div class="container mx-auto px-8">
+                    <div class="max-w-5xl">
+                        <div class="text-sm font-bold tracking-widest uppercase mb-8 opacity-30">Audio Research Lab</div>
+                        <h1 class="heading-style-h1 mb-12">
+                            The future of AI is <br><em>conversational</em>.
+                        </h1>
+                        <p class="text-xl md:text-2xl text-gray-500 max-w-2xl mb-12 leading-relaxed">
+                            Developing the proprietary high-fidelity audio datasets that power the next generation of speech models.
+                        </p>
+                        <div class="flex flex-wrap gap-6">
+                            <a href="#datasets" class="button">View datasets</a>
+                            <a href="#mission" class="flex items-center gap-2 font-bold hover:text-[#4d65ff] transition-colors">
+                                Our Research Philosophy <span>&rarr;</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Mission -->
+            <section id="mission" class="py-40 bg-white">
+                <div class="container mx-auto px-8">
+                    <div class="max-w-4xl">
+                        <h2 class="text-4xl md:text-6xl font-medium leading-tight tracking-tight reveal-text">
+                            We bridge the gap between human expression and machine understanding by capturing the <span class="text-[#4d65ff]">nuance</span> of natural speech.
+                        </h2>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Horizontal Scroll Datasets -->
+            <section id="datasets" class="horizontal-scroll_wrapper">
+                <div class="horizontal-scroll_sticky">
+                    <div class="dataset_header_wrap">
+                        <div class="text-sm font-bold tracking-widest uppercase opacity-30 mb-2">02 — Catalog</div>
+                        <h2 class="text-4xl md:text-5xl font-bold">Featured Datasets</h2>
+                    </div>
+                    
+                    <div class="horizontal-scroll_list" id="datasetList">
+                        <!-- Card 1 -->
+                        <div class="dataset_card">
+                            <div>
+                                <span class="inline-block bg-blue-50 text-[#4d65ff] text-xs font-bold px-3 py-1 rounded-full uppercase mb-6">Dialogue</span>
+                                <h3 class="text-3xl md:text-4xl font-bold mb-4">Multi-Turn Conversational</h3>
+                                <p class="text-gray-500 leading-relaxed text-sm md:text-base">15,000+ hours of natural, unscripted dialogue with high-quality transcripts. Optimized for LLM grounding and response training.</p>
+                            </div>
+                            <div class="pt-6 border-t border-gray-100 flex justify-between items-center">
+                                <span class="text-xs font-bold">48kHz Mono</span>
+                                <a href="#contact" class="button py-2 px-5 text-xs bg-transparent border border-black text-black hover:bg-black hover:text-white">Request &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Card 2 -->
+                        <div class="dataset_card">
+                            <div>
+                                <span class="inline-block bg-purple-50 text-purple-600 text-xs font-bold px-3 py-1 rounded-full uppercase mb-6">Prosody</span>
+                                <h3 class="text-3xl md:text-4xl font-bold mb-4">Emotional Synthesis</h3>
+                                <p class="text-gray-500 leading-relaxed text-sm md:text-base">Targeted prosody data capturing micro-expressions in vocal tone, breath patterns, and speaker intent for high-realism TTS.</p>
+                            </div>
+                            <div class="pt-6 border-t border-gray-100 flex justify-between items-center">
+                                <span class="text-xs font-bold">Studio Grade</span>
+                                <a href="#contact" class="button py-2 px-5 text-xs bg-transparent border border-black text-black hover:bg-black hover:text-white">Request &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Card 3 -->
+                        <div class="dataset_card">
+                            <div>
+                                <span class="inline-block bg-green-50 text-green-600 text-xs font-bold px-3 py-1 rounded-full uppercase mb-6">Localization</span>
+                                <h3 class="text-3xl md:text-4xl font-bold mb-4">Global Dialects</h3>
+                                <p class="text-gray-500 leading-relaxed text-sm md:text-base">Representative speech data across 40+ regions, ensuring global models maintain local character and accent precision.</p>
+                            </div>
+                            <div class="pt-6 border-t border-gray-100 flex justify-between items-center">
+                                <span class="text-xs font-bold">Diverse Locales</span>
+                                <a href="#contact" class="button py-2 px-5 text-xs bg-transparent border border-black text-black hover:bg-black hover:text-white">Request &rarr;</a>
+                            </div>
+                        </div>
+                        <!-- Card 4 -->
+                        <div class="dataset_card">
+                            <div>
+                                <span class="inline-block bg-orange-50 text-orange-600 text-xs font-bold px-3 py-1 rounded-full uppercase mb-6">Environment</span>
+                                <h3 class="text-3xl md:text-4xl font-bold mb-4">Acoustic Profiles</h3>
+                                <p class="text-gray-500 leading-relaxed text-sm md:text-base">Real-world spatial audio recordings in various noise conditions (cafes, traffic, office) for training robust noise-cancellation and ASR models.</p>
+                            </div>
+                            <div class="pt-6 border-t border-gray-100 flex justify-between items-center">
+                                <span class="text-xs font-bold">Spatial Audio</span>
+                                <a href="#contact" class="button py-2 px-5 text-xs bg-transparent border border-black text-black hover:bg-black hover:text-white">Request &rarr;</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Lead Gen Section (Consolidated Join Us) -->
+            <section id="contact" class="py-40 bg-[#f1f3f5]">
+                <div class="container mx-auto px-8">
+                    <div class="grid md:grid-cols-2 gap-20 items-center">
+                        <div>
+                            <div class="text-sm font-bold tracking-widest uppercase mb-4 opacity-30">03 — Network</div>
+                            <h2 class="text-5xl font-bold mb-8 leading-tight">Join our research network.</h2>
+                            <p class="text-xl text-gray-500 leading-relaxed">We're building the infrastructure for the future of voice. Partner with us to scale your audio research or access our data catalog.</p>
+                            
+                            <div class="mt-12 space-y-4">
+                                <div class="flex items-center gap-4 text-sm font-bold uppercase opacity-40">
+                                    <div class="w-8 h-px bg-black"></div> Trusted By Leading AI Labs
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-8 md:p-12 rounded-[2rem] shadow-sm">
+                            <form id="joinForm" class="space-y-6" onsubmit="event.preventDefault(); alert('Request received. Our team will contact you shortly.');">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <input type="text" placeholder="First Name" class="contact_input" required>
+                                    <input type="text" placeholder="Last Name" class="contact_input" required>
+                                </div>
+                                <input type="email" placeholder="Work Email" class="contact_input" required>
+                                <select class="contact_input" required>
+                                    <option value="" disabled selected>Primary Interest</option>
+                                    <option>License Existing Datasets</option>
+                                    <option>Request Custom Collection</option>
+                                    <option>Apply for Research Access</option>
+                                    <option>Career Opportunities</option>
+                                </select>
+                                <textarea placeholder="How can we help?" class="contact_input h-32 resize-none"></textarea>
+                                <button type="submit" class="button w-full justify-center py-4">Join Us</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- News & Insights -->
+            <section id="news" class="py-40 is-dark">
+                <div class="container mx-auto px-8">
+                    <div class="flex flex-wrap justify-between items-end mb-20 gap-6">
+                        <div class="max-w-xl">
+                            <div class="text-sm font-bold tracking-widest uppercase mb-4 opacity-50">04 — News</div>
+                            <h2 class="text-5xl font-bold">Latest from the Lab</h2>
+                        </div>
+                        <a href="#" class="text-lg font-bold border-b-2 border-white pb-1 hover:text-[#4d65ff] hover:border-[#4d65ff] transition-all">All updates</a>
+                    </div>
+
+                    <div class="max-w-5xl">
+                        <a href="#" class="news_row">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <span class="text-sm opacity-50 font-mono">2025.12.18</span>
+                                <h3 class="text-2xl md:text-3xl font-semibold">Advancing Zero-Shot TTS with Prosodic Anchors</h3>
+                                <span class="text-2xl transition-transform group-hover:translate-x-2">&rarr;</span>
+                            </div>
+                        </a>
+                        <a href="#" class="news_row">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <span class="text-sm opacity-50 font-mono">2025.11.05</span>
+                                <h3 class="text-2xl md:text-3xl font-semibold">Scaling Audio Data: Ethics and Privacy in 2026</h3>
+                                <span class="text-2xl">&rarr;</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="py-20 bg-white border-t border-gray-100">
+            <div class="container mx-auto px-8">
+                <div class="grid md:grid-cols-4 gap-12 mb-20">
+                    <div class="col-span-2">
+                        <div class="text-2xl font-bold tracking-tighter mb-6">AmplLab</div>
+                        <p class="text-gray-500 max-w-sm">The world's premier audio research lab. Trusted by leading AI organizations to define the sound of the future.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-6">Explore</h4>
+                        <ul class="space-y-4 text-gray-500">
+                            <li><a href="#datasets" class="hover:text-black">Datasets</a></li>
+                            <li><a href="#news" class="hover:text-black">Research</a></li>
+                            <li><a href="#contact" class="hover:text-black">Join Us</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold mb-6">Contact</h4>
+                        <ul class="space-y-4 text-gray-500">
+                            <li>data@ampllab.com</li>
+                            <li>India</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="pt-10 border-t border-gray-100 flex flex-col md:flex-row justify-between gap-6 opacity-40 text-sm font-medium">
+                    <p>&copy; 2025 AmplLab. All rights reserved.</p>
+                    <div class="flex gap-8">
+                        <a href="#">Twitter</a>
+                        <a href="#">LinkedIn</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Navbar Scroll Logic
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('is-scrolled');
+            } else {
+                nav.classList.remove('is-scrolled');
+            }
+        });
+
+        // Horizontal Scroll Animation
+        const datasetList = document.getElementById('datasetList');
+        
+        gsap.to(datasetList, {
+            x: () => -(datasetList.scrollWidth - window.innerWidth + (window.innerWidth * 0.2)),
+            ease: "none",
+            scrollTrigger: {
+                trigger: ".horizontal-scroll_wrapper",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 1,
+                invalidateOnRefresh: true,
+                onUpdate: (self) => {
+                    const progress = self.progress;
+                    let opacity = 1;
+                    if (progress > 0.05) {
+                        opacity = Math.max(0, 1 - (progress - 0.05) * 5);
+                    }
+                    gsap.to(".dataset_header_wrap", {
+                        opacity: opacity,
+                        y: -progress * 100,
+                        duration: 0.1,
+                        overwrite: "auto"
+                    });
+                }
+            }
+        });
+
+        // Text Reveal Animation for Mission
+        gsap.from(".reveal-text", {
+            opacity: 0.1,
+            y: 30,
+            duration: 1.5,
+            scrollTrigger: {
+                trigger: "#mission",
+                start: "top 80%",
+                end: "top 20%",
+                scrub: true
+            }
+        });
+
+        // Handle window resize for animations
+        window.addEventListener("resize", () => {
+            ScrollTrigger.refresh();
+        });
+    </script>
+</body>
+</html>
